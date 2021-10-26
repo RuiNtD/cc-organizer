@@ -48,22 +48,17 @@ async function isReady(gamePath: string): Promise<boolean> {
   }
 }
 
-grantOrThrow({ name: "write", path: "out" });
-try {
-  await Deno.mkdir("out");
-} catch {}
-
 if (handleSSE) {
   console.log("Checking for Skyrim Special Edition...");
   if (await isReady(ssePath)) {
-    await update(ssePath, "out/sse.json");
+    await update(ssePath, "skyrimse.json");
   }
 }
 
 if (handleFO4) {
   console.log("Checking for Fallout 4...");
   if (await isReady(fo4Path)) {
-    await update(fo4Path, "out/fo4.json");
+    await update(fo4Path, "fallout4.json");
   }
 }
 
