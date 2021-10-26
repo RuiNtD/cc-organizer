@@ -36,7 +36,7 @@ Any time new Creation Club files are added to Skyrim, the database must be
 updated. This will also need to be done at least once before organizing.
 
 ```
-deno run https://github.com/FayneAldan/ccimport/raw/deno/update.ts
+deno run https://github.com/FayneAldan/cc-organizer/raw/deno/update.ts
 ```
 
 ## Organizing your CC files
