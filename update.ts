@@ -1,55 +1,70 @@
-import { grantOrThrow, path } from "./deps.ts";
+import { update } from "./lib/update.ts";
+import { grantOrThrow, parse, path } from "./deps.ts";
 
-async function getApiData(id: string) {
-  grantOrThrow({ name: "net", host: "api.bethesda.net" });
-  let req = await fetch(
-    `https://api.bethesda.net/mods/ugc-workshop/content/get?content_id=${id}`,
-  );
-  let data = await req.json();
-  return data.platform.response.content;
+const args = parse(Deno.args, {
+  string: ["lib", "sse", "fo4"],
+  boolean: ["help"],
+});
+
+if (args.help) {
+  console.log(`Game installation paths can be specified in two ways:`);
+  console.log("  --lib <libraryPath>");
+  console.log("    Specify a path containing a steamapps folder.");
+  console.log("  --sse <ssePath> --fo4 <fo4Path>");
+  console.log("    Specify the path to SSE and/or FO4.");
+  console.log("    One or both paths can be specified.");
+  Deno.exit(0);
 }
 
-export async function update(gamePath: string, outputPath: string) {
-  if (!path.extname(outputPath)) {
-    outputPath += ".json";
-  }
+let lib: string = args.lib || path.join("C:", "Program Files (x86)", "Steam");
+let common = path.join(lib, "steamapps", "common");
+let ssePath = args.sse || path.join(common, "Skyrim Special Edition");
+let fo4Path = args.fo4 || path.join(common, "Fallout 4");
+
+const handleDef = !args.lib && !args.sse && !args.fo4;
+if (handleDef) {
+  console.warn("No arguments provided. Assuming default install locations.");
+  console.log("  Use --help for usage information.");
+}
+
+const handleLib = !!(args.lib) || handleDef;
+const handleSSE = handleLib || !!(args.sse);
+const handleFO4 = handleLib || !!(args.fo4);
+
+async function isReady(gamePath: string): Promise<boolean> {
   const maniPath = path.join(gamePath, "Creations");
-  await grantOrThrow({ name: "read", path: maniPath });
-  let files;
+  let status = await Deno.permissions.request({ name: "read", path: maniPath });
+  if (status.state !== "granted") {
+    console.log("Permission denied. Skipping...");
+    return false;
+  }
   try {
-    files = Deno.readDirSync(maniPath);
-  } catch (e) {
-    console.error("Game not found.");
-    return;
+    await (Deno.stat(maniPath));
+    console.log("Game found. Starting update...");
+    return true;
+  } catch {
+    console.log("Failed to find game. Skipping...");
+    return false;
   }
-
-  let datas = [];
-  for (let file of files) {
-    if (path.extname(file.name) != ".manifest") {
-      continue;
-    }
-    let match = file.name.match(/^(\d+)/) as RegExpMatchArray;
-    let contents = await getApiData(match[1]);
-    // console.log(contents);
-    let name = contents.name.trim();
-    let filePath = path.join(maniPath, file.name);
-    const data = (await Deno.readTextFile(filePath))
-      .split(/.\0/)
-      .filter(Boolean);
-    console.info(name);
-    //for (const fileB of data) console.log("    " + fileB);
-    datas.push({ name, data });
-  }
-  await grantOrThrow({ name: "write", path: outputPath });
-  await Deno.writeTextFile(outputPath, JSON.stringify(datas, null, 2) + "\n");
-  console.info("Done. Saved data file");
 }
 
-if (import.meta.main) {
-  const args = Deno.args;
-  if (args.length < 2) {
-    console.error("Invalid usage.");
-    console.log("  Usage: update <gamePath> <outputPath>");
-    console.log('  Example: update "C:\\SkyrimSE" skyrim.json');
-  } else await update(args[0], args[1]);
+grantOrThrow({ name: "write", path: "out" });
+try {
+  await Deno.mkdir("out");
+} catch {}
+
+if (handleSSE) {
+  console.log("Checking for Skyrim Special Edition...");
+  if (await isReady(ssePath)) {
+    await update(ssePath, "out/sse.json");
+  }
 }
+
+if (handleFO4) {
+  console.log("Checking for Fallout 4...");
+  if (await isReady(fo4Path)) {
+    await update(fo4Path, "out/fo4.json");
+  }
+}
+
+console.log("Finished");
