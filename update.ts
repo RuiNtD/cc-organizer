@@ -25,6 +25,9 @@ export async function update(gamePath: string, outputPath: string) {
 
   let datas = [];
   for (let file of files) {
+    if (path.extname(file.name) != ".manifest") {
+      continue;
+    }
     let match = file.name.match(/^(\d+)/) as RegExpMatchArray;
     let contents = await getApiData(match[1]);
     // console.log(contents);
