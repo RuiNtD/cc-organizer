@@ -1,7 +1,5 @@
 import { update } from "./update.ts";
-import { parse } from "https://deno.land/std@0.113.0/flags/mod.ts";
-import * as path from "https://deno.land/std@0.113.0/path/mod.ts";
-import { grantOrThrow } from "https://deno.land/std@0.113.0/permissions/mod.ts";
+import { grantOrThrow, parse, path } from "./deps.ts";
 
 const args = parse(Deno.args, {
   string: ["lib", "sse", "fo4"],

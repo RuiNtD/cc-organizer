@@ -1,5 +1,4 @@
-import * as path from "https://deno.land/std@0.113.0/path/mod.ts";
-import { grantOrThrow } from "https://deno.land/std@0.113.0/permissions/mod.ts";
+import { grantOrThrow, path } from "./deps.ts";
 
 async function getApiData(id: string) {
   grantOrThrow({ name: "net", host: "api.bethesda.net" });
