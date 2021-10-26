@@ -25,7 +25,10 @@ const handleSSE = handleLib || !!(args.sse);
 const handleFO4 = handleLib || !!(args.fo4);
 
 export async function checkReady(gamePath: string) {
-  let status = await Deno.permissions.request({ name: "read", path: gamePath });
+  const status = await Deno.permissions.request({
+    name: "read",
+    path: gamePath,
+  });
   if (status.state !== "granted") {
     throw "Permission denied. Skipping...";
   }
@@ -37,7 +40,7 @@ export async function checkReady(gamePath: string) {
 }
 
 export default function getGamePaths(): GamePaths {
-  let ret: GamePaths = {};
+  const ret: GamePaths = {};
   if (handleSSE) {
     ret.SkyrimSE = ssePath;
   }

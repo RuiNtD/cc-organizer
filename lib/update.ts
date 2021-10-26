@@ -2,10 +2,10 @@ import { grantOrThrow, path } from "../deps.ts";
 
 async function getApiData(id: string) {
   grantOrThrow({ name: "net", host: "api.bethesda.net" });
-  let req = await fetch(
+  const req = await fetch(
     `https://api.bethesda.net/mods/ugc-workshop/content/get?content_id=${id}`,
   );
-  let data = await req.json();
+  const data = await req.json();
   return data.platform.response.content;
 }
 
@@ -18,21 +18,21 @@ export async function update(gamePath: string, outputPath: string) {
   let files;
   try {
     files = Deno.readDirSync(maniPath);
-  } catch (e) {
+  } catch (_) {
     console.error("Game not found.");
     return;
   }
 
-  let datas = [];
-  for (let file of files) {
+  const datas = [];
+  for (const file of files) {
     if (path.extname(file.name) != ".manifest") {
       continue;
     }
-    let match = file.name.match(/^(\d+)/) as RegExpMatchArray;
-    let contents = await getApiData(match[1]);
+    const match = file.name.match(/^(\d+)/) as RegExpMatchArray;
+    const contents = await getApiData(match[1]);
     // console.log(contents);
-    let name = contents.name.trim();
-    let filePath = path.join(maniPath, file.name);
+    const name = contents.name.trim();
+    const filePath = path.join(maniPath, file.name);
     const data = (await Deno.readTextFile(filePath))
       .split(/.\0/)
       .filter(Boolean);
