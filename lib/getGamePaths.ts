@@ -1,4 +1,5 @@
-import { parse, path } from "../deps.ts";
+import { grantOrThrow, parse, path } from "../deps.ts";
+const { NotFound } = Deno.errors;
 
 export interface GamePaths {
   SkyrimSE?: string;
@@ -25,17 +26,14 @@ const handleSSE = handleLib || !!(args.sse);
 const handleFO4 = handleLib || !!(args.fo4);
 
 export async function checkReady(gamePath: string) {
-  const status = await Deno.permissions.request({
+  await grantOrThrow({
     name: "read",
     path: gamePath,
   });
-  if (status.state !== "granted") {
-    throw "Permission denied. Skipping...";
-  }
   try {
     await (Deno.stat(gamePath));
   } catch {
-    throw "Failed to find game. Skipping...";
+    throw new NotFound("Failed to find game");
   }
 }
 

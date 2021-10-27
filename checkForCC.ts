@@ -1,7 +1,12 @@
-import { grantOrThrow, path } from "./deps.ts";
+import { colors, grantOrThrow, parse, path } from "./deps.ts";
 import getGamePaths, { checkReady } from "./lib/getGamePaths.ts";
-import { colors } from "./deps.ts";
-const { red, green } = colors;
+import { pauseIfP } from "./lib/pause.ts";
+const { red, green, bold, inverse } = colors;
+
+const args = parse(Deno.args, {
+  boolean: ["found", "missing"],
+  default: { found: true, missing: true },
+});
 
 // Utility script to check for missing CC files
 // Does not account for placeholder filenames
@@ -18,35 +23,39 @@ async function check(gamePath: string, cccName: string) {
   for (const line of cccLines) {
     try {
       await Deno.stat(path.join(dataPath, line));
-      console.log(green(`Found ${line}`));
+      if (args.found) {
+        console.log(green(`Found ${line}`));
+      }
     } catch (_) {
-      console.log(red(`${line} is missing`));
+      if (args.missing) {
+        console.log(red(`${line} is missing`));
+      }
     }
   }
 }
 
 const paths = getGamePaths();
 
-if (paths.SkyrimSE) {
-  console.log("Checking for Skyrim Special Edition...");
-  try {
-    await checkReady(path.join(paths.SkyrimSE, "Skyrim.ccc"));
-    console.log("Game found. Starting check...");
-    await check(paths.SkyrimSE, "Skyrim.ccc");
-  } catch (e) {
-    console.error(e);
+async function handle(
+  name: string,
+  gamePath: string | undefined,
+  cccName: string,
+) {
+  if (gamePath) {
+    console.log(bold(inverse(`[ ${name} ]`)));
+    try {
+      await checkReady(path.join(gamePath, cccName));
+      await check(gamePath, cccName);
+      console.log();
+    } catch (e) {
+      console.error(red(e.toString()));
+      console.log();
+    }
   }
 }
 
-if (paths.Fallout4) {
-  console.log("Checking for Fallout 4...");
-  try {
-    await checkReady(path.join(paths.Fallout4, "Fallout4.ccc"));
-    console.log("Game found. Starting check...");
-    await check(paths.Fallout4, "Fallout4.ccc");
-  } catch (e) {
-    console.error(e);
-  }
-}
+await handle("Skyrim Special Edition", paths.SkyrimSE, "Skyrim.ccc");
+await handle("Fallout 4", paths.Fallout4, "Fallout4.ccc");
 
-console.log("Finished");
+console.log(green(bold("Finished")));
+await pauseIfP();

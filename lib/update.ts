@@ -14,7 +14,10 @@ export async function update(gamePath: string, outputPath: string) {
     outputPath += ".json";
   }
   const maniPath = path.join(gamePath, "Creations");
-  await grantOrThrow({ name: "read", path: maniPath });
+  await grantOrThrow(
+    { name: "read", path: maniPath },
+    { name: "write", path: outputPath },
+  );
   let files;
   try {
     files = Deno.readDirSync(maniPath);
@@ -40,7 +43,6 @@ export async function update(gamePath: string, outputPath: string) {
     //for (const fileB of data) console.log("    " + fileB);
     datas.push({ name, data });
   }
-  await grantOrThrow({ name: "write", path: outputPath });
   await Deno.writeTextFile(outputPath, JSON.stringify(datas, null, 2) + "\n");
   console.info("Done. Saved data file");
 }

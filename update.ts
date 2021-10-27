@@ -1,29 +1,40 @@
 import { update } from "./lib/update.ts";
-import { path } from "./deps.ts";
+import { colors, grantOrThrow, path } from "./deps.ts";
 import getGamePaths, { checkReady } from "./lib/getGamePaths.ts";
+import { pauseIfP } from "./lib/pause.ts";
+
+const { bold, inverse, red, green } = colors;
 
 const paths = getGamePaths();
+try {
+  await grantOrThrow({ name: "net", host: "api.bethesda.net" });
+  console.log();
+} catch (e) {
+  console.error(red(e.toString()));
+  await pauseIfP();
+  Deno.exit(1);
+}
 
-if (paths.SkyrimSE) {
-  console.log("Checking for Skyrim Special Edition...");
-  try {
-    await checkReady(path.join(paths.SkyrimSE, "Creations"));
-    console.log("Game found. Starting update...");
-    await update(paths.SkyrimSE, "skyrimse.json");
-  } catch (e) {
-    console.error(e);
+async function handle(
+  name: string,
+  gamePath: string | undefined,
+  output: string,
+) {
+  if (gamePath) {
+    console.log(bold(inverse(`[ ${name} ]`)));
+    try {
+      await checkReady(path.join(gamePath, "Creations"));
+      await update(gamePath, output);
+      console.log();
+    } catch (e) {
+      console.error(red(e.toString()));
+      console.log();
+    }
   }
 }
 
-if (paths.Fallout4) {
-  console.log("Checking for Fallout 4...");
-  try {
-    await checkReady(path.join(paths.Fallout4, "Creations"));
-    console.log("Game found. Starting update...");
-    await update(paths.Fallout4, "fallout4.json");
-  } catch (e) {
-    console.error(e);
-  }
-}
+await handle("Skyrim Special Edition", paths.SkyrimSE, "SkyrimSE.json");
+await handle("Fallout 4", paths.Fallout4, "Fallout4.json");
 
-console.log("Finished");
+console.log(green(bold("Finished")));
+await pauseIfP();
