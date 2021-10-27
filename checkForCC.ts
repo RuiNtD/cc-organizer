@@ -26,7 +26,7 @@ async function check(gamePath: string, cccName: string) {
       if (args.found) {
         console.log(green(`Found ${line}`));
       }
-    } catch (_) {
+    } catch {
       if (args.missing) {
         console.log(red(`${line} is missing`));
       }

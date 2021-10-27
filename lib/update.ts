@@ -1,4 +1,6 @@
 import { grantOrThrow, path } from "../deps.ts";
+import { CreationListData } from "./types.ts";
+const { NotFound } = Deno.errors;
 
 async function getApiData(id: string) {
   grantOrThrow({ name: "net", host: "api.bethesda.net" });
@@ -9,7 +11,7 @@ async function getApiData(id: string) {
   return data.platform.response.content;
 }
 
-export async function update(gamePath: string, outputPath: string) {
+export default async function update(gamePath: string, outputPath: string) {
   if (!path.extname(outputPath)) {
     outputPath += ".json";
   }
@@ -21,12 +23,11 @@ export async function update(gamePath: string, outputPath: string) {
   let files;
   try {
     files = Deno.readDirSync(maniPath);
-  } catch (_) {
-    console.error("Game not found.");
-    return;
+  } catch {
+    throw new NotFound("Failed to find game");
   }
 
-  const datas = [];
+  const datas: CreationListData = [];
   for (const file of files) {
     if (path.extname(file.name) != ".manifest") {
       continue;
@@ -39,19 +40,9 @@ export async function update(gamePath: string, outputPath: string) {
     const data = (await Deno.readTextFile(filePath))
       .split(/.\0/)
       .filter(Boolean);
-    console.info(name);
+    console.log(name);
     //for (const fileB of data) console.log("    " + fileB);
     datas.push({ name, data });
   }
   await Deno.writeTextFile(outputPath, JSON.stringify(datas, null, 2) + "\n");
-  console.info("Done. Saved data file");
-}
-
-if (import.meta.main) {
-  const args = Deno.args;
-  if (args.length < 2) {
-    console.error("Invalid usage.");
-    console.log("  Usage: update <gamePath> <outputPath>");
-    console.log('  Example: update "C:\\SkyrimSE" skyrim.json');
-  } else await update(args[0], args[1]);
 }

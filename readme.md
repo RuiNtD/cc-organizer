@@ -34,17 +34,21 @@ install location on the C drive.
 You can compile the scripts into executables using the `deno compile` command.
 Any command line arguments will be passed to the script. Make sure to pass in
 `-p` to prevent the scripts from closing when they finish. You can also pass in
-Deno's `--allow` parameters to remove permission requests. Examples:
+Deno's `--allow` parameters to bypass permission requests. Examples:
 
 ```bat
 : Requests permissions as needed. Easiest.
 deno compile https://github.com/FayneAldan/cc-organizer/raw/deno/update.ts -p --lib E:\SteamLibrary
+deno compile https://github.com/FayneAldan/cc-organizer/raw/deno/organize.ts -p --lib E:\SteamLibrary
 
 : Grants specific permissions.
 deno compile --allow-read=E:\SteamLibrary --allow-write=. --allow-net=api.bethesda.net https://github.com/FayneAldan/cc-organizer/raw/deno/update.ts -p --lib E:\SteamLibrary
+deno compile --allow-read=".,E:\Games\SteamLibrary" --allow-write=. https://github.com/FayneAldan/cc-organizer/raw/deno/organize.ts -p --lib E:\SteamLibrary
+
 
 : Grants all permissions. Not recommended. -A is short for --allow-all
 deno compile -A https://github.com/FayneAldan/cc-organizer/raw/deno/update.ts -p --lib E:\SteamLibrary
+deno compile -A https://github.com/FayneAldan/cc-organizer/raw/deno/organize.ts -p --lib E:\SteamLibrary
 ```
 
 ## Updating the datbase
@@ -58,5 +62,9 @@ deno run https://github.com/FayneAldan/cc-organizer/raw/deno/update.ts
 
 ## Organizing your CC files
 
-WIP. This section will be updated once the organize script has been updated to
-Deno.
+Simply use this command to copy your CC files from your game into organized
+folders.
+
+```
+deno run https://github.com/FayneAldan/cc-organizer/raw/deno/organize.ts
+```

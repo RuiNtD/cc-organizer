@@ -26,10 +26,7 @@ const handleSSE = handleLib || !!(args.sse);
 const handleFO4 = handleLib || !!(args.fo4);
 
 export async function checkReady(gamePath: string) {
-  await grantOrThrow({
-    name: "read",
-    path: gamePath,
-  });
+  await grantOrThrow({ name: "read", path: gamePath });
   try {
     await (Deno.stat(gamePath));
   } catch {
