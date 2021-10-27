@@ -2,7 +2,7 @@ import update from "./lib/update.ts";
 import { colors, grantOrThrow, path } from "./deps.ts";
 import getGamePaths, { checkReady } from "./lib/getGamePaths.ts";
 import { pauseIfP } from "./lib/pause.ts";
-const { bold, inverse, red, green, yellow } = colors;
+const { bold, inverse, red, green } = colors;
 
 async function handle(
   name: string,
